@@ -9,8 +9,7 @@ component "razor-server" do |pkg, settings, platform|
     pkg.requires "libarchive-dev"
   end
 
-  pkg.directory "/var/lib/razor"
-  pkg.directory "/var/lib/razor/repo-store"
+  pkg.directory File.join(settings[:install_root], "var", "razor", "repo-store")
 
   case platform.name
   when /(el-(6|7)|fedora-(f22|f23))/
@@ -25,15 +24,13 @@ component "razor-server" do |pkg, settings, platform|
   end
 
 
+  pkg.directory settings[:rundir], owner: 'razor', group: 'razor'
   case platform.servicetype
   when "systemd"
-    pkg.directory "/usr/share/razor-server"
-    pkg.directory "/run/razor-server"
     pkg.install_service "ext/redhat/razor-server.service"
-    pkg.install_configfile "ext/redhat/razor-server.env", "/usr/share/razor-server/razor-server.env"
+    pkg.install_configfile "ext/redhat/razor-server.env", "#{settings[:prefix]}/razor-server.env"
     pkg.install_configfile "ext/redhat/razor-server-tmpfiles.conf", "/usr/lib/tmpfiles.d/razor-server.conf"
   when "sysv"
-    pkg.directory settings[:rundir], owner: 'razor', group: 'razor'
     pkg.install_service "ext/razor-server.init"
   else
     fail "need to know where to put service files"
@@ -59,7 +56,7 @@ component "razor-server" do |pkg, settings, platform|
     ]
   end
 
-  pkg.link "#{settings[:prefix]}/bin/razor-binary-wrapper", "/usr/sbin/razor-admin"
+  pkg.link "#{settings[:prefix]}/bin/razor-binary-wrapper", "/opt/puppetlabs/server/bin/razor-admin"
 
   pkg.add_postinstall_action ['install', 'upgrade'],
     [
