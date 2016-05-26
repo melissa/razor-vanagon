@@ -37,6 +37,7 @@ server taking possession of ESX systems).
   proj.setting(:logdir, "/var/log/puppetlabs/razor-server")
   proj.setting(:rundir, "/var/run/puppetlabs/razor-server")
   proj.setting(:server_bindir, "/opt/puppetlabs/server/bin")
+  proj.setting(:agent_bindir, "/opt/puppetlabs/bin")
 
   proj.user("razor", group: "razor", shell: '/bin/bash', is_system: true, homedir: "#{proj.install_root}/var/razor")
 
