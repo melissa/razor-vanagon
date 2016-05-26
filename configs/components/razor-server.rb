@@ -11,6 +11,8 @@ component "razor-server" do |pkg, settings, platform|
 
   pkg.directory File.join(settings[:install_root], "var", "razor", "repo-store")
 
+  java_home = ""
+  javacmd = ""
   case platform.name
   when /(el-(6|7)|fedora-(f22|f23))/
     pkg.build_requires 'java-1.8.0-openjdk-devel'
@@ -18,10 +20,13 @@ component "razor-server" do |pkg, settings, platform|
   when /(debian-(7|8)|ubuntu-(12|14))/
     pkg.build_requires 'openjdk-7-jdk'
     pkg.requires 'openjdk-7-jre-headless'
+    java_home = "/usr/lib/jvm/java-7-openjdk-#{platform.architecture}"
   when /(debian-9|ubuntu-(15|16))/
     pkg.build_requires 'openjdk-8-jdk'
     pkg.requires 'openjdk-8-jre-headless'
+    java_home = "/usr/lib/jvm/java-8-openjdk-#{platform.architecture}"
   end
+  jruby = "#{java_home} #{javacmd} #{settings[:torquebox_prefix]}/jruby/bin/jruby -S"
 
 
   pkg.directory settings[:rundir], owner: 'razor', group: 'razor'
@@ -42,8 +47,10 @@ component "razor-server" do |pkg, settings, platform|
   pkg.configure do
     [
       "rm Gemfile.lock",
-      "#{settings[:torquebox_prefix]}/jruby/bin/jruby -S bundle install --clean --no-cache --path vendor/bundle --without 'development test doc'",
-      "rm -rf .bundle/install.log"
+      "#{jruby} bundle install --shebang #{server_bindir}/jruby --clean --no-cache --local --deployment --path #{settings[:prefix]}vendor/bundle --without 'development test doc'",
+      "rm -rf .bundle/install.log",
+      "rm -rf vendor/bundle/jruby/1.9/cache",
+      "#{jruby} bundle config --local PATH #{settings[:prefix]}/vendor/bundle"
     ]
   end
 
@@ -52,11 +59,11 @@ component "razor-server" do |pkg, settings, platform|
       "rm -rf spec",
       "rm -rf ext",
       "cp -pr .bundle * #{settings[:prefix]}",
-      "rm -rf #{settings[:prefix]}/vendor/bundle/jruby/1.9/gems/thor-0.19.1/spec"
+      "cp -p config.yaml.sample #{settings[:prefix]}"
     ]
   end
 
-  pkg.link "#{settings[:prefix]}/bin/razor-binary-wrapper", "/opt/puppetlabs/server/bin/razor-admin"
+  pkg.link "#{settings[:prefix]}/bin/razor-binary-wrapper", "#{settings[:server_bindir]}/razor-admin"
 
   pkg.add_postinstall_action ['install', 'upgrade'],
     [

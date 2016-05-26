@@ -8,14 +8,17 @@ component "razor-torquebox" do |pkg, settings, platform|
   pkg.install do
     [
        "mv * #{settings[:torquebox_prefix]}/",
-       "rm -rf #{settings[:torquebox_prefix]}/jruby/lib/ruby/gems/shared/gems/builder-3.0.0/TAGS",
-       "rm -rf #{settings[:torquebox_prefix]}/jruby/lib/ruby/gems/shared/gems/thor-0.19.1/spec",
-       "rm -rf #{settings[:torquebox_prefix]}/jruby/lib/jni/{arm-Linux,Darwin,i386-SunOS,i386-Windows,ppc-AIX,sparcv9-SunOS,x86_64-FreeBSD,x86_64-SunOS,x86_64-Windows}",
+       "sed -i 's,#!\/usr\/bin\/env\s*jruby,#!#{settings[:install_root]}/bin/jruby,g' #{settings[:torquebox_prefix]}/jruby/bin/*",
+       "sed -i '/^cygwin=false$/ a\JAVACMD=#{settings[:java]}' #{settings[:torquebox_prefix]}/jruby/bin/jruby",
+       "sed -i '/^require .*rubygems.*$/ a\ENV[\"JBOSS_HOME\"] = \"#{settings[:torquebox_prefix]}/jboss\"' #{settings[:torquebox_prefix]}/jruby/bin/torquebox"
     ]
   end
 
   pkg.install_configfile "../razor-torquebox.sh", "#{settings[:sysconfdir]}/razor-torquebox.sh"
   pkg.install_configfile "../standalone.xml", "#{settings[:torquebox_prefix]}/jboss/standalone/configuration/standalone.xml"
+
+  pkg.link "#{settings[:torquebox_prefix]}/jruby/bin/jruby", "#{settings[:install_root]}/bin/jruby"
+  pkg.link "#{settings[:torquebox_prefix]}/jruby/bin/torquebox", "#{settings[:install_root]}/sbin/jruby"
 
   pkg.add_postinstall_action ['install', 'upgrade'],
     [
