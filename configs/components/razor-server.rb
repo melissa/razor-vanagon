@@ -65,10 +65,8 @@ component "razor-server" do |pkg, settings, platform|
     ]
   end
 
-  pkg.link "#{settings[:prefix]}/bin/razor-admin", "#{settings[:agent_bindir]}/razor-admin"
-  pkg.link "#{settings[:prefix]}/bin/razor-binary-wrapper", "#{settings[:agent_bindir]}/razor-binary-wrapper"
-  pkg.link "#{settings[:prefix]}/bin/razor-admin", "#{settings[:server_bindir]}/razor-admin"
-  pkg.link "#{settings[:prefix]}/bin/razor-binary-wrapper", "#{settings[:server_bindir]}/razor-binary-wrapper"
+  pkg.link "#{settings[:prefix]}/bin/razor-binary-wrapper", "#{settings[:agent_bindir]}/razor-admin"
+  pkg.link "#{settings[:prefix]}/bin/razor-binary-wrapper", "#{settings[:server_bindir]}/razor-admin"
 
   pkg.add_postinstall_action ['install', 'upgrade'],
     [
