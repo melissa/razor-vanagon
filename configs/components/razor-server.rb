@@ -69,6 +69,7 @@ component "razor-server" do |pkg, settings, platform|
   # On upgrade, check to see if these files exist and copy them out of the way to preserve their contents
   pkg.add_preinstall_action ['upgrade'],
     [
+      "[[ -z $(find /var/lib/razor/repo-store -maxdepth 0 -type d -empty) ]] && mkdir -p /tmp/.razor-server.upgrade/repo && cp -r /var/lib/razor/repo-store/* --target-directory=/tmp/.razor-server.upgrade/repo",
       "[[ -e /etc/razor/config.yaml ]] && mkdir -p /tmp/.razor-server.upgrade && cp /etc/razor/config.yaml /tmp/.razor-server.upgrade/config.yaml",
       "[[ -e /etc/razor/shiro.ini ]] && mkdir -p /tmp/.razor-server.upgrade && cp /etc/razor/shiro.ini /tmp/.razor-server.upgrade/shiro.ini",
     ]
@@ -89,6 +90,7 @@ component "razor-server" do |pkg, settings, platform|
 
   pkg.add_postinstall_action ['upgrade'],
     [
+      "[[ -e /tmp/.razor-server.upgrade/repo ]] && mv /tmp/.razor-server.upgrade/repo/* --target-directory=/opt/puppetlabs/server/apps/razor-server/repo",
       "[[ -e /tmp/.razor-server.upgrade/config.yaml ]] && mv /tmp/.razor-server.upgrade/config.yaml #{settings[:sysconfdir]}/config.yaml",
       "[[ -e /tmp/.razor-server.upgrade/shiro.ini ]] && mv /tmp/.razor-server.upgrade/shiro.ini #{settings[:sysconfdir]}/shiro.ini",
       "[[ -e /tmp/.razor-server.upgrade ]] && rm -rf /tmp/.razor-server.upgrade"
